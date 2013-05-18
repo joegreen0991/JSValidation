@@ -30,7 +30,7 @@ Please note that jQuery is NOT required. It is used only as the implementation o
                     },
                     // there is a "regex" validator built right in, just add named regexes (validators of the same name take priority)
                     regex : {
-                        strongpassword : /^(?=.*(\d|\W)).{5,20}$$/
+                        strongpassword : /^(?=.*(\d|\W)).{5,20}$/
                     },
 
                     // add error messages to be shown when the corresponding regex or validator fails
