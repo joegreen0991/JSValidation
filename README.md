@@ -54,8 +54,8 @@ Please note that jQuery is NOT required. It is used only for event handling and 
                             callback(parseInt(this.value) === 5);
                         }
                     },
-                    onBeforeValidateElement : function(obj){
-                        $(obj).parent().find('.success-form,.error-form').remove();
+                    onBeforeValidateElement : function(input){
+                        $(input).parent().find('.success-form,.error-form').remove();
                     },
                     onInputSuccess : function(input){
                         $(input).after('<span class="success-form">OK</span>');
