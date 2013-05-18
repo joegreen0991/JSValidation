@@ -147,11 +147,7 @@ var Validator = function(options){
 
         options.onBeforeValidateForm(form);
 
-        var inputs = form.getElementsByTagName('input');
-        
-        var defs = [];
-        
-        for (var i = 0; i < inputs.length; ++i) {
+        for (var i = 0,  defs = [], inputs = form.getElementsByTagName('input'); i < inputs.length; ++i) {
             defs = defs.concat(this.element(inputs[i]));
         }
         
