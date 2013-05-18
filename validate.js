@@ -1,261 +1,168 @@
-var Validate = function(obj,options,validators){
-    /**
-    * a set of rules for front end validation
-    * matches classes of val-'ruleName' where rule name can be:
-    * 
-    * email
-    * required
-    * (please contribute)
-    */
-  	
-    var validators = $.extend({
-        email : {
-            name : 'email',
-            validator:function(){
-                var filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-                return !this.length || filter.test(this);
-            },
-            message : 'Please enter a valid email address'
+var Validator = function(options){
+    
+    var self = this,
+    
+        Deferred=function(){function e(e){return Object.prototype.toString.call(e)==="[object Array]"}function t(t,n){if(e(t)){for(var r=0;r<t.length;r++){n(t[r])}}else n(t)}function n(r){var i="pending",s=[],o=[],u=[],a=null,f={done:function(){for(var t=0;t<arguments.length;t++){if(!arguments[t]){continue}if(e(arguments[t])){var n=arguments[t];for(var r=0;r<n.length;r++){if(i==="resolved"){n[r].apply(this,a)}s.push(n[r])}}else{if(i==="resolved"){arguments[t].apply(this,a)}s.push(arguments[t])}}return this},fail:function(){for(var t=0;t<arguments.length;t++){if(!arguments[t]){continue}if(e(arguments[t])){var n=arguments[t];for(var r=0;r<n.length;r++){if(i==="rejected"){n[r].apply(this,a)}o.push(n[r])}}else{if(i==="rejected"){arguments[t].apply(this,a)}o.push(arguments[t])}}return this},always:function(){return this.done.apply(this,arguments).fail.apply(this,arguments)},progress:function(){for(var t=0;t<arguments.length;t++){if(!arguments[t]){continue}if(e(arguments[t])){var n=arguments[t];for(var r=0;r<n.length;r++){if(i==="pending"){u.push(n[r])}}}else{if(i==="pending"){u.push(arguments[t])}}}return this},then:function(){if(arguments.length>1&&arguments[1]){this.fail(arguments[1])}if(arguments.length>0&&arguments[0]){this.done(arguments[0])}if(arguments.length>2&&arguments[2]){this.progress(arguments[2])}},promise:function(e){if(e==null){return f}else{for(var t in f){e[t]=f[t]}return e}},state:function(){return i},debug:function(){console.log("[debug]",s,o,i)},isRejected:function(){return i==="rejected"},isResolved:function(){return i==="resolved"},pipe:function(e,r,i){return n(function(n){t(e,function(e){if(typeof e==="function"){l.done(function(){var t=e.apply(this,arguments);if(t&&typeof t==="function"){t.promise().then(n.resolve,n.reject,n.notify)}else{n.resolve(t)}})}else{l.done(n.resolve)}});t(r,function(e){if(typeof e==="function"){l.fail(function(){var t=e.apply(this,arguments);if(t&&typeof t==="function"){t.promise().then(n.resolve,n.reject,n.notify)}else{n.reject(t)}})}else{l.fail(n.reject)}})}).promise()}},l={resolveWith:function(e){if(i==="pending"){i="resolved";var t=a=arguments.length>1?arguments[1]:[];for(var n=0;n<s.length;n++){s[n].apply(e,t)}}return this},rejectWith:function(e){if(i==="pending"){i="rejected";var t=a=arguments.length>1?arguments[1]:[];for(var n=0;n<o.length;n++){o[n].apply(e,t)}}return this},notifyWith:function(e){if(i==="pending"){var t=a=arguments.length>1?arguments[1]:[];for(var n=0;n<u.length;n++){u[n].apply(e,t)}}return this},resolve:function(){return this.resolveWith(this,arguments)},reject:function(){return this.rejectWith(this,arguments)},notify:function(){return this.notifyWith(this,arguments)}};var c=f.promise(l);if(r){r.apply(c,[c])}return c}n.when=function(){if(arguments.length<2){var e=arguments.length?arguments[0]:undefined;if(e&&typeof e.isResolved==="function"&&typeof e.isRejected==="function"){return e.promise()}else{return n().resolve(e).promise()}}else{return function(e){var t=n(),r=e.length,i=0,s=new Array(r);for(var o=0;o<e.length;o++){(function(n){e[n].done(function(){s[n]=arguments.length<2?arguments[0]:arguments;if(++i==r){t.resolve.apply(t,s)}}).fail(function(){t.reject(arguments)})})(o)}return t.promise()}(arguments)}};return n}(),
+    
+        Util = {
+            interpolate : function(s,a){for(var i in a){s = s.replace('{'+i+'}',a[i]);}return s},
+            extend : function(e,t){for(var n in t){if(t.hasOwnProperty(n)){var r=t[n];if(e.hasOwnProperty(n)&&typeof e[n]==="object"&&typeof r==="object"){Util.extend(e[n],r)}else{e[n]=r}}}return e},
+            error : function(message){throw new Error(message);}
+        };
+    
+    options = Util.extend({
+
+        attr : 'data-validate',
+        
+        ruleSeparator : /\s+/,
+        
+        ruleArgumentSeparator : ':',
+        
+        argumentSeparator : ',',
+
+        onBeforeValidate : function(form){},
+        onInputSuccess : function(input,message,validatorName,args){},
+        onInputFail : function(input,message,validatorName,args){},
+        onSuccess : function(form){
+            form.submit();
         },
-        url : {
-            name : 'url',
-            validator:function(){
-                var filter = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
-                return !this.length || filter.test(this);
-            },
-            message : 'Please enter a valid website address'
+        onFail : function(form){},
+        
+        defaultMessage : 'Please check this field for errors',
+        
+        messages : {
+            email   : 'Please enter a valid email address',
+            url     : 'Please enter a valid URL',
+            alpha   : 'Please enter only alphabetic characters',
+            alnum   : 'Please enter only alphabetic characters',
+            alnumextended : 'Please enter only A-Z 0-9 _ - characters',
+            integer     : 'Please enter only whole integers',
+            float       : 'Please enter a number',
+            positive    : 'Please enter a positive number',
+            negative    : 'Please enter a negative number',
+            telephone   : 'Please enter a valid telephone number',
+            required    : 'Please fill out this field',
+            length      : 'Please ensure the value is exactly {0} characters in length',
+            minlength   : 'Please ensure the value is greater than {0} characters in length',
+            maxlength   : 'Please ensure the value is less than {0} characters in length',
+            empty   : 'Please do not fill out this field'
         },
-        alpha : {
-            name : 'alpha',
-            validator:function(){
-                var filter = /^[A-Za-z]+$/;
-                return !this.length || filter.test(this);
-            },
-            message : 'Please enter only alphabetic characters'
+
+        regex : {
+            email   : /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/,
+            url     : /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
+            alpha   : /^[A-Za-z]+$/,
+            alnum   : /^[A-Za-z0-9]+$/,
+            alnumextended : /^[A-Za-z0-9_-]+$/,
+            integer     : /^\s*(\+|-)?\d+\s*$/,
+            float       : /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/,
+            telephone   : /^(?:\((\+?\d+)?\)|\+?\d+) ?\d*(-?\d{2,3} ?){0,4}$/,
+            required    : /^\s*$/,
+            empty   : /^$/
         },
-        integer : {
-            name : 'integer',
-            validator:function(){
-                var filter = /^[0-9]+$/;
-                return !this.length || filter.test(this);
+
+        validators : {
+            positive : function(callback){
+                callback(this >= 0);
             },
-            message : 'Please enter only numbers'
-        },
-        alnum : {
-            name : 'alnum',
-            validator:function(){
-                var filter = /^[A-Za-z0-9]+$/;
-                return !this.length || filter.test(this);
+            negative : function(callback){
+                callback(this <= 0);
             },
-            message : 'Please enter only alphanumeric characters'
-        },
-        alnumextended : {
-            name : 'alnumextended',
-            validator:function(){
-                var filter = /^[A-Za-z0-9_-]+$/;
-                return !this.length || filter.test(this);
+            required :function(callback){
+                callback(!options.regex.required.test(this));
             },
-            message : 'Please enter only A-Z 0-9 _ - characters'
-        },
-        telephone : {
-            name : 'telephone',
-            validator : function(){
-                var filter = /^(?:\((\+?\d+)?\)|\+?\d+) ?\d*(-?\d{2,3} ?){0,4}$/;
-                return !this.length || filter.test(this);
+            length : function(size,callback){
+                callback(this.length == size);
             },
-            message : 'Please enter a valid telephone number'
-        },
-        required : {
-            name : 'required',
-            validator:function(){
-                return !/^\s*$/.test(this);
+            minlength : function(size,callback){
+                callback(this.length >= size);
             },
-            message : 'Please fill out this field'
-        },
-        strlen : {
-            name : 'strlen',
-            validator:function(size){
-                if(typeof size !== 'undefined'){
-                    if(this.length == size){
-                        validators.strlen.tmpmessage = validators.strlen.tmpmessage || validators.strlen.message;
-                        validators.strlen.message = validators.strlen.tmpmessage +' is exactly '+size+' characters';
-                        return false;
-                    }
-                }
-                return true;
-            },
-            message : 'Please check the length'
-        },
-        min : {
-            name : 'min',
-            validator:function(min){
-                if(typeof min !== 'undefined'){
-                    if(this.length > 0 && this.length < min){
-                        validators.min.tmpmessage = validators.min.tmpmessage || validators.min.message;
-                        validators.min.message = validators.min.tmpmessage +' is at least '+min+' characters'
-                        return false;
-                    }
-                }
-                return true;
-            },
-            message : 'Please check the length'
+            maxlength : function(size,callback){
+                callback(this.length <= size);
+            }
         }
-    },validators);
-		
-    var options = $.extend({
-        dataattr : 'data-validate'
     },options);
-				
-    //this.successElements = [];
-    var errorElements = [];
     
-    this.run = function(){
-        $(obj).each(function(){
-            var inp = $(this);
-            var validatorsList = inp.attr(options.dataattr).split(/\s+/);
-            $.each(validators,function(key,rule){
+    
+    
+    this.message = function(value,valName,args){
+        var message = options.messages[valName] ? options.messages[valName] : options.defaultMessage;
+        return Util.interpolate(message.replace('{value}',value),args);  
+    };
 
-                for (var i = 0; i < validatorsList.length; i++) {
-                    var validator = validatorsList[i].replace(/:(.+)$/,'').replace('val-',''); //val- for legacy
-                    var args = validatorsList[i].replace(/^(.+):/,'');
-                    if(args !== null){
-                        args = args.split(',');
-                    }else{
-                        args = []; // IE 7+8 fix. Args cannot be null
-                    }
-
-                    if (validator === key) {
-                        if(!rule.validator.apply(inp.val(),args)){
-                            (function(inp,rule){
-                                errorElements.push([inp,rule]);
-                            })(inp,rule)
-                            return false; //break out so we only show one message at a time
-                        }
-                    }
-                }
-            })
-        });
-        this.errorElements = errorElements;
-        return (this.errorElements.length == 0);
-    }
+    this.validate = function(value, valName, args, callback){
         
-}
-
-var Validator = function(){
-    
-    var messages = {
-        email   : 'Please enter a valid email address',
-        url     : 'Please enter a valid URL',
-        alpha   : 'Please enter only alphabetic characters',
-        alnum   : 'Please enter only alphabetic characters',
-        alnumextended : 'Please enter only A-Z 0-9 _ - characters',
-        integer     : 'Please enter only whole integers',
-        float       : 'Please enter a number',
-        positive    : 'Please enter a positive number',
-        negative    : 'Please enter a negative number',
-        telephone   : 'Please enter a valid telephone number',
-        required    : 'Please fill out this field',
-        length      : 'Please ensure the value is exactly {0} characters in length',
-        minlength   : 'Please ensure the value is greater than {0} characters in length',
-        maxlength   : 'Please ensure the value is less than {0} characters in length',
-        empty   : 'Please do not fill out this field'
-    };
-    
-    var message = function(validatorName,args){
-        if(messages[validatorName]){
-            var interpolated = messages[validatorName];
-            for(var a in args){
-                interpolated = interpolated.replace('{'+a+'}',args[a]);
-            }
-            return interpolated;
-        }
-        console.log('A message for validator "' + validatorName + '" does not exist.');
+        var tmp = args.slice(0); 
+        tmp.push(callback);
+        
+        options.validators[valName] ?
+            options.validators[valName].apply(value,tmp) : 
+            options.regex[valName] ?
+                callback(!value.length || options.regex[valName].test(value)) :
+                Util.error('A regex for validator "' + valName + '" does not exist.');
+        
+        return this;
     };
 
-    
-    var regex = {
-        email   : /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/,
-        url     : /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
-        alpha   : /^[A-Za-z]+$/,
-        alnum   : /^[A-Za-z0-9]+$/,
-        alnumextended : /^[A-Za-z0-9_-]+$/,
-        integer     : /^\s*(\+|-)?\d+\s*$/,
-        float       : /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/,
-        telephone   : /^(?:\((\+?\d+)?\)|\+?\d+) ?\d*(-?\d{2,3} ?){0,4}$/,
-        required    : /^\s*$/,
-        empty   : /^$/
-    };
-    
-    var base = function(validatorName){
-        if(regex[validatorName]){
-            return !this.length || regex[validatorName].test(this);
-        }
-        console.log('A regex for validator "' + validatorName + '" does not exist.');
-    };
-    
-    var validators = {
-        required :function(){
-            return !regex.required.test(this);
-        },
-        length : function(size){
-            return this.length == size;
-        },
-        minlength : function(size){
-            return this.length >= size;
-        },
-        maxlength : function(size){
-            return this.length <= size;
-        }
-    };
-
-    this.validate = function(value, validatorName, args){
-        return (validators[validatorName] ? validators[validatorName] : base).apply(value,args);
-    };
-    
-    this.addRegex = function(name, regex){
-        if(typeof name === 'object'){
-            for(var a in name){
-                this.addRegex(a,name[a]);
-            }
-            return;
-        }
-
-        regex[name] = regex;
-    };
-    
-    this.addValidator = function(name, validator){
-        if(typeof name === 'object'){
-            for(var a in name){
-                this.addValidator(a,name[a]);
-            }
-            return;
-        }
-
-        validators[name] = validator;
-    };
-    
-    this.addMessage = function(name, message){
-        if(typeof name === 'object'){
-            for(var a in name){
-                this.addMessage(a,name[a]);
-            }
-            return;
-        }
-
-        messages[name] = message;
-    };
-    
     this.element = function(obj){
-        
-        var validatorsList = obj.getAttribute(dataattr).split(/\s+/);
-        
-        for (var i = 0; i < validatorsList.length; i++) {
+                          
+        for (var i = 0, defs = [], list = obj.getAttribute(options.attr).split(options.ruleSeparator); i < list.length; i++) {
             
-            var validatorName = validatorsList[i].replace(/:(.+)$/,'');
+            defs[i] = Deferred();
             
-            var args = validatorsList[i].replace(/^(.+):/,'').split(',') || []; // IE 7+8 fix. Args cannot be null
-
-            validator.run(obj.value,validatorName,args);
+            var parts = list[i].split(options.ruleArgumentSeparator);
+ 
+            (function(i,valName,args){
+                
+                self.validate(obj.value, valName, args, function(result){
+                    (result ? defs[i].resolve(valName, args) : defs[i].reject(valName, args));
+                });
+                
+            })(i,parts[0], parts[1] ? parts[1].split(options.argumentSeparator) : []);          
+            
         }
+
+        var when = Deferred.when.apply(this,defs);
+
+        when.always(function(arg){
+            var func = when.state() === 'resolved' ? options.onInputSuccess : options.onInputFail;
+            func && func(obj, self.message(obj.value, arg[0], arg[1]), arg[0], arg[1]);
+        });
+        
+        return defs;
+    };
+    
+    this.form = function(form){
+        
+        options.onBeforeValidate(form);
+        
+        var inputs = form.getElementsByTagName('input');
+        
+        var defs = [];
+        
+        for (var i = 0; i < inputs.length; ++i) {
+            defs = defs.concat(this.element(inputs[i]));
+        }
+        
+        Deferred.when.apply(this,defs).then(function(){
+            options.onSuccess(form);
+        },function(){
+            options.onFail(form);
+        });
+        
+        return defs;
     };
 };
+
+
+if(jQuery){
+    jQuery.fn.validate = function(options){
+
+        var val = new Validator(options);
+
+        return this.submit(function(e){
+            e.preventDefault();
+            val.form(this);
+        });
+    };
+}

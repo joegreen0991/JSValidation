@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+        <script src="validate.js"></script>
+        <script>
+            $(function(){              
+                $('form').validate({
+                    validators : {
+                        unique : function(callback){
+                            var value = this;
+                            setTimeout(function(){
+                                callback(value != 'joe@example.com');
+                            },1000);
+                        }
+                    },
+                    messages : {
+                        unique : 'The email address "{value}" is already in use'
+                    },
+                    onBeforeValidate : function(form){
+                        $(form).find('.success-form,.error-form').remove();
+                    },
+                    onInputSuccess : function(input){
+                        $(input).after('<div class="success-form">OK</div>');
+                    },
+                    onInputFail : function(input,message,validatorName,args){
+                        $(input).after('<div class="error-form">'+message+'</div>');
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <form>
+            <input data-validate="required minlength:5"/>
+            <input data-validate="required email unique"/>
+            <button>Submit</button>
+        </form>
+    </body>
+    
+</html>
