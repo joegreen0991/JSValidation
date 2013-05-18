@@ -20,7 +20,8 @@ var Validator = function(options){
         
         argumentSeparator : ',',
 
-        onBeforeValidate : function(form){},
+        onBeforeValidateElement : function(obj){},
+        onBeforeValidateForm : function(form){},
         onInputSuccess : function(input,message,validatorName,args){},
         onInputFail : function(input,message,validatorName,args){},
         onSuccess : function(form){
@@ -45,7 +46,9 @@ var Validator = function(options){
             length      : 'Please ensure the value is exactly {0} characters in length',
             minlength   : 'Please ensure the value is greater than {0} characters in length',
             maxlength   : 'Please ensure the value is less than {0} characters in length',
-            empty   : 'Please do not fill out this field'
+            empty   : 'Please do not fill out this field',
+            min     : 'Please enter a number greater than or equal to {0}',
+            max     : 'Please enter a number less than or equal to {0}'
         },
 
         regex : {
@@ -63,10 +66,16 @@ var Validator = function(options){
 
         validators : {
             positive : function(callback){
-                callback(this >= 0);
+                callback(options.regex.float.test(this) && this >= 0);
             },
             negative : function(callback){
-                callback(this <= 0);
+                callback(options.regex.float.test(this) && this <= 0);
+            },
+            min : function(min,callback){
+                callback(options.regex.float.test(this) && this >= parseFloat(min));
+            },
+            max : function(max,callback){
+                callback(options.regex.float.test(this) && this <= parseFloat(max));
             },
             required :function(callback){
                 callback(!options.regex.required.test(this));
@@ -99,13 +108,15 @@ var Validator = function(options){
             options.validators[valName].apply(value,tmp) : 
             options.regex[valName] ?
                 callback(!value.length || options.regex[valName].test(value)) :
-                Util.error('A regex for validator "' + valName + '" does not exist.');
+                Util.error('A validator or regex has not been set for  "' + valName + '"');
         
         return this;
     };
 
     this.element = function(obj){
-                          
+        
+        options.onBeforeValidateElement(obj);
+        
         for (var i = 0, defs = [], list = obj.getAttribute(options.attr).split(options.ruleSeparator); i < list.length; i++) {
             
             defs[i] = Deferred();
@@ -133,9 +144,9 @@ var Validator = function(options){
     };
     
     this.form = function(form){
-        
-        options.onBeforeValidate(form);
-        
+
+        options.onBeforeValidateForm(form);
+
         var inputs = form.getElementsByTagName('input');
         
         var defs = [];
@@ -153,16 +164,3 @@ var Validator = function(options){
         return defs;
     };
 };
-
-
-if(jQuery){
-    jQuery.fn.validate = function(options){
-
-        var val = new Validator(options);
-
-        return this.submit(function(e){
-            e.preventDefault();
-            val.form(this);
-        });
-    };
-}
