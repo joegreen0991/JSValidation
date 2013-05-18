@@ -2,7 +2,7 @@ JSValidation
 ============
 
 A framework independent JavaScript Validation Library
-```javascript
+```html
 <html>
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
