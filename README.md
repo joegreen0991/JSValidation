@@ -3,7 +3,7 @@ JSValidation
 
 A framework independent JavaScript Validation Library
 
-Please note that jQuery is NOT required. It is used only as the implementation of events and dom manipulation for this specific example.
+Please note that jQuery is NOT required. It is used only for event handling and dom manipulation in this specific example.
 
 ```html
 <html>
