@@ -9,19 +9,18 @@ Please note that jQuery is NOT required. It is used only for event handling and 
 <html>
     <head>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-        <script src="validate.js"></script>
+        <script src="validate.min.js"></script>
         <script>
-
-            $(function(){   
+            (function(){
                 // timer simulates xjax call. In practise this object would be the previous xhr request. 
                 // xhr.stop() should be called to avoid resolution of multiple deferred objects from overlapping validate calls
                 var timer;
                 
-                var val = new Validator({
-                    // custom validators can be added like this
+                // Global plugins can be added as follows
+                Validator.plugin({
                     validators : {
                         unique : function(callback){
-                            var value = this;
+                            var value = this.value;
                             clearTimeout(timer)
                             timer = setTimeout(function(){
                                 callback(value != 'joe@example.com');
@@ -37,8 +36,24 @@ Please note that jQuery is NOT required. It is used only for event handling and 
                     messages : {
                         unique : 'The email address "{value}" is already in use',
                         strongpassword : 'Your password is not strong enough. Please enter another.'
+                    }
+                });
+            })();
+        </script>
+        <script>
+
+            $(function(){   
+                
+                var val = new Validator({
+                    // Per instance validators can be added like this
+                    messages : {
+                        'five' : 'Please set the value of this field to 5'
                     },
-                        
+                    validators : {
+                        'five' : function(callback){
+                            callback(parseInt(this.value) === 5);
+                        }
+                    },
                     onBeforeValidateElement : function(obj){
                         $(obj).parent().find('.success-form,.error-form').remove();
                     },
@@ -64,7 +79,7 @@ Please note that jQuery is NOT required. It is used only for event handling and 
         </script>
         <style>
             
-            label,input,.success-form,.error-form {
+            label,input,textarea,.success-form,.error-form {
                 display:block;
                 width:150px;
                 padding:5px;
@@ -95,9 +110,11 @@ Please note that jQuery is NOT required. It is used only for event handling and 
             <div><label>Password</label> <input data-validate="required minlength:8 strongpassword"/></div>
             <div><label>Username</label> <input data-validate="required alnumextended"/></div>
             <div><label>Email</label> <input data-validate="required email unique"/></div>
-            <div><label>Price</label> <input data-validate="required float positive"/></div>
-            <div><label>Minimum Value</label> <input data-validate="required float negative min:-20"/></div>
-            <div><label>Telephone (optional)</label> <input data-validate="telephone"/></div>
+            <div><label>Price</label> <input data-validate="required number positive"/></div>
+            <div><label>Enter the number 5</label> <input data-validate="required five"/></div>
+            <div><label>Minimum Value</label> <input data-validate="required number negative min:-20"/></div>
+            <div><label>Telephone (optional)</label> <input data-validate="required telephone"/></div>
+            <div><label>Agree</label> <input type="checkbox" data-validate="required checked"></div>
             <div><button>Submit</button></div>
         </form>
     </body>
