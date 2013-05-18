@@ -13,7 +13,7 @@
                     // custom validators can be added like this
                     validators : {
                         unique : function(callback){
-                            var value = this;
+                            var value = this.value;
                             clearTimeout(timer)
                             timer = setTimeout(function(){
                                 callback(value != 'joe@example.com');
@@ -89,9 +89,8 @@
             <div><label>Email</label> <input data-validate="required email unique"/></div>
             <div><label>Price</label> <input data-validate="required float positive"/></div>
             <div><label>Minimum Value</label> <input data-validate="required float negative min:-20"/></div>
-            <div><label>Telephone (optional)</label> <input data-validate="telephone"/></div>
-            <div><label>Message</label> <textarea data-validate="required minlength:5"></textarea></div>
-            <div><label>Agree</label> <input type="checkbox" data-validate="checked"></div>
+            <div><label>Telephone (optional)</label> <input data-validate="required telephone"/></div>
+            <div><label>Agree</label> <input type="checkbox" data-validate="required checked"></div>
             <div><button>Submit</button></div>
         </form>
     </body>
