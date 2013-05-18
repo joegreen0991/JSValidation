@@ -529,10 +529,10 @@ var Validator = function(options){
             defs[i] = Deferred();
             
             var parts = list[i].split(options.ruleArgumentSeparator);
- 
+            
             (function(i,valName,args){
                 self.validate(input, valName, args, function(result){
-                    (result ? defs[i].resolve(valName, args) : defs[i].reject(valName, args));
+                    (result ? defs[i].resolve([valName, args]) : defs[i].reject([valName, args]));
                 });
             })(i,parts[0], parts[1] ? parts[1].split(options.argumentSeparator) : []);          
             
@@ -540,9 +540,9 @@ var Validator = function(options){
 
         var when = Deferred.when.apply(this,defs);
 
-        when.always(function(valName,args){
+        when.always(function(args){
             var func = when.state() === 'resolved' ? options.onInputSuccess : options.onInputFail;
-            func && func(input, self.message(input.value, valName, args), valName, args);
+            func && func(input, self.message(input.value, args[0], args[1]), args[0], args[1]);
         });
         
         return defs;
