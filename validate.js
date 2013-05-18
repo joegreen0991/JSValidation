@@ -7,7 +7,8 @@ var Validator = function(options){
         Util = {
             interpolate : function(s,a){for(var i in a){s = s.replace('{'+i+'}',a[i]);}return s},
             extend : function(e,t){for(var n in t){if(t.hasOwnProperty(n)){var r=t[n];if(e.hasOwnProperty(n)&&typeof e[n]==="object"&&typeof r==="object"){Util.extend(e[n],r)}else{e[n]=r}}}return e},
-            error : function(message){throw new Error(message);}
+            error : function(message){throw new Error(message);},
+            getElementsByTagNames : function(e,t){if(!t)var t=document;var n=e.split(",");var r=new Array;for(var i=0;i<n.length;i++){var s=t.getElementsByTagName(n[i]);for(var o=0;o<s.length;o++){r.push(s[o])}}var u=r[0];if(!u)return[];if(u.sourceIndex){r.sort(function(e,t){return e.sourceIndex-t.sourceIndex})}else if(u.compareDocumentPosition){r.sort(function(e,t){return 3-(e.compareDocumentPosition(t)&6)})}return r}
         };
     
     options = Util.extend({
@@ -48,7 +49,8 @@ var Validator = function(options){
             maxlength   : 'Please ensure the value is less than {0} characters in length',
             empty   : 'Please do not fill out this field',
             min     : 'Please enter a number greater than or equal to {0}',
-            max     : 'Please enter a number less than or equal to {0}'
+            max     : 'Please enter a number less than or equal to {0}',
+            checked     : 'Please check the box to continue'
         },
 
         regex : {
@@ -66,28 +68,31 @@ var Validator = function(options){
 
         validators : {
             positive : function(callback){
-                callback(options.regex.float.test(this) && this >= 0);
+                callback(options.regex.float.test(this.value) && this.value >= 0);
             },
             negative : function(callback){
-                callback(options.regex.float.test(this) && this <= 0);
+                callback(options.regex.float.test(this.value) && this.value <= 0);
             },
             min : function(min,callback){
-                callback(options.regex.float.test(this) && this >= parseFloat(min));
+                callback(options.regex.float.test(this.value) && this.value >= parseFloat(min));
             },
             max : function(max,callback){
-                callback(options.regex.float.test(this) && this <= parseFloat(max));
+                callback(options.regex.float.test(this.value) && this.value <= parseFloat(max));
             },
             required :function(callback){
-                callback(!options.regex.required.test(this));
+                callback(!options.regex.required.test(this.value));
             },
             length : function(size,callback){
-                callback(this.length == size);
+                callback(this.value.length == size);
             },
             minlength : function(size,callback){
-                callback(this.length >= size);
+                callback(this.value.length >= size);
             },
             maxlength : function(size,callback){
-                callback(this.length <= size);
+                callback(this.value.length <= size);
+            },
+            checked : function(callback){
+                callback(this.checked);
             }
         }
     },options);
@@ -99,15 +104,15 @@ var Validator = function(options){
         return Util.interpolate(message.replace('{value}',value),args);  
     };
 
-    this.validate = function(value, valName, args, callback){
+    this.validate = function(obj, valName, args, callback){
         
         var tmp = args.slice(0); 
         tmp.push(callback);
-        
+
         options.validators[valName] ?
-            options.validators[valName].apply(value,tmp) : 
+            options.validators[valName].apply(obj,tmp) : 
             options.regex[valName] ?
-                callback(!value.length || options.regex[valName].test(value)) :
+                callback(!obj.value.length || options.regex[valName].test(obj.value)) :
                 Util.error('A validator or regex has not been set for  "' + valName + '"');
         
         return this;
@@ -125,7 +130,8 @@ var Validator = function(options){
  
             (function(i,valName,args){
                 
-                self.validate(obj.value, valName, args, function(result){
+                self.validate(obj, valName, args, function(result){
+                    
                     (result ? defs[i].resolve(valName, args) : defs[i].reject(valName, args));
                 });
                 
@@ -136,6 +142,7 @@ var Validator = function(options){
         var when = Deferred.when.apply(this,defs);
 
         when.always(function(arg){
+            console.log(arg);
             var func = when.state() === 'resolved' ? options.onInputSuccess : options.onInputFail;
             func && func(obj, self.message(obj.value, arg[0], arg[1]), arg[0], arg[1]);
         });
@@ -147,7 +154,7 @@ var Validator = function(options){
 
         options.onBeforeValidateForm(form);
 
-        for (var i = 0,  defs = [], inputs = form.getElementsByTagName('input'); i < inputs.length; ++i) {
+        for (var i = 0,  defs = [], inputs = Util.getElementsByTagNames('input,select,checkbox,textarea',form); i < inputs.length; ++i) {
             defs = defs.concat(this.element(inputs[i]));
         }
         
