@@ -21,7 +21,7 @@ var Validator = function(options){
         
         argumentSeparator : ',',
 
-        onBeforeValidateElement : function(obj){},
+        onBeforeValidateElement : function(input){},
         onBeforeValidateForm : function(form){},
         onInputSuccess : function(input,message,validatorName,args){},
         onInputFail : function(input,message,validatorName,args){},
@@ -30,40 +30,40 @@ var Validator = function(options){
         },
         onFail : function(form){},
         
-        defaultMessage : 'Please check this field for errors',
+        defaultMessage      : 'Please check this field for errors',
         
         messages : {
-            email   : 'Please enter a valid email address',
-            url     : 'Please enter a valid URL',
-            alpha   : 'Please enter only alphabetic characters',
-            alnum   : 'Please enter only alphabetic characters',
-            alnumextended : 'Please enter only A-Z 0-9 _ - characters',
-            integer     : 'Please enter only whole integers',
-            float       : 'Please enter a number',
-            positive    : 'Please enter a positive number',
-            negative    : 'Please enter a negative number',
-            telephone   : 'Please enter a valid telephone number',
-            required    : 'Please fill out this field',
-            length      : 'Please ensure the value is exactly {0} characters in length',
-            minlength   : 'Please ensure the value is greater than {0} characters in length',
-            maxlength   : 'Please ensure the value is less than {0} characters in length',
-            empty   : 'Please do not fill out this field',
-            min     : 'Please enter a number greater than or equal to {0}',
-            max     : 'Please enter a number less than or equal to {0}',
-            checked     : 'Please check the box to continue'
+            email           : 'Please enter a valid email address',
+            url             : 'Please enter a valid URL',
+            alpha           : 'Please enter only alphabetic characters',
+            alnum           : 'Please enter only alphabetic characters',
+            alnumextended   : 'Please enter only A-Z 0-9 _ - characters',
+            integer         : 'Please enter only whole integers',
+            float           : 'Please enter a number',
+            positive        : 'Please enter a positive number',
+            negative        : 'Please enter a negative number',
+            telephone       : 'Please enter a valid telephone number',
+            required        : 'Please fill out this field',
+            length          : 'Please ensure the value is exactly {0} characters in length',
+            minlength       : 'Please ensure the value is greater than {0} characters in length',
+            maxlength       : 'Please ensure the value is less than {0} characters in length',
+            empty           : 'Please do not fill out this field',
+            min             : 'Please enter a number greater than or equal to {0}',
+            max             : 'Please enter a number less than or equal to {0}',
+            checked         : 'Please check the box to continue'
         },
 
         regex : {
-            email   : /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/,
-            url     : /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
-            alpha   : /^[A-Za-z]+$/,
-            alnum   : /^[A-Za-z0-9]+$/,
-            alnumextended : /^[A-Za-z0-9_-]+$/,
-            integer     : /^\s*(\+|-)?\d+\s*$/,
-            float       : /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/,
-            telephone   : /^(?:\((\+?\d+)?\)|\+?\d+) ?\d*(-?\d{2,3} ?){0,4}$/,
-            required    : /^\s*$/,
-            empty   : /^$/
+            email           : /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/,
+            url             : /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi,
+            alpha           : /^[A-Za-z]+$/,
+            alnum           : /^[A-Za-z0-9]+$/,
+            alnumextended   : /^[A-Za-z0-9_-]+$/,
+            integer         : /^\s*(\+|-)?\d+\s*$/,
+            float           : /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/,
+            telephone       : /^(?:\((\+?\d+)?\)|\+?\d+) ?\d*(-?\d{2,3} ?){0,4}$/,
+            required        : /^\s*$/,
+            empty           : /^$/
         },
 
         validators : {
@@ -104,15 +104,15 @@ var Validator = function(options){
         return Util.interpolate(message.replace('{value}',value),args);  
     };
 
-    this.validate = function(obj, valName, args, callback){
+    this.validate = function(input, valName, args, callback){
         
         var tmp = args.slice(0); 
         tmp.push(callback);
 
         options.validators[valName] ?
-            options.validators[valName].apply(obj,tmp) : 
+            options.validators[valName].apply(input,tmp) : 
             options.regex[valName] ?
-                callback(!obj.value.length || options.regex[valName].test(obj.value)) :
+                callback(!input.value.length || options.regex[valName].test(input.value)) :
                 Util.error('A validator or regex has not been set for  "' + valName + '"');
         
         return this;
