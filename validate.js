@@ -2,8 +2,7 @@ var Validator = function(){
         
     var Validator = function(options){
     
-        var Util = Validator.Util,
-            Promise = function() {
+        var Promise = function() {
                 var defer = function() {
                     return new function() {
                         var state = null,
@@ -134,19 +133,18 @@ var Validator = function(){
 
             return defs;
         };
-    };
-
-    Validator.plugin = function(plugin){
-        Validator.Util.extend(Validator.plugins,Validator.Util.only(plugin,['messages','regex','validators']));
-    };
-
-    Validator.Util = {
+    },
+    Util = {
         'loop' : function(o,c){for (var i = 0; i < o.length; i++) {c.call(o[i],i);}},
         'only'  : function(o,k){var t = {};for(var a in k)if(o[k[a]]) t[k[a]] = o[k[a]];return t},
         'interpolate' : function(s,a){for(var i in a){s = s.replace('{'+i+'}',a[i]);}return s},
         'extend' : function(){var e=function(t,n){for(var r in n){if(n.hasOwnProperty(r)){var i=n[r];if(t.hasOwnProperty(r)&&typeof t[r]==="object"&&typeof i==="object"){e(t[r],i)}else{t[r]=i}}}return t};var t={};for(var n=0;n<arguments.length;n++){t=e(t,arguments[n])}return t},
         'error' : function(message){throw new Error(message);},
         'getElements' : function(e,t){t=t||document;var n=e.split(",");var r=new Array;for(var i=0;i<n.length;i++){var s=t.getElementsByTagName(n[i]);for(var o=0;o<s.length;o++){r.push(s[o])}}var u=r[0];if(!u)return[];if(u.sourceIndex){r.sort(function(e,t){return e.sourceIndex-t.sourceIndex})}else if(u.compareDocumentPosition){r.sort(function(e,t){return 3-(e.compareDocumentPosition(t)&6)})}return r}
+    };
+
+    Validator.plugin = function(plugin){
+        Util.extend(Validator.plugins,Util.only(plugin,['messages','regex','validators']));
     };
 
     Validator.plugins = {
