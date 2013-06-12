@@ -70,7 +70,9 @@ var Validator = function(){
                 },
                 'onFail' : function(form){},
 
-                'defaultMessage'      : 'Please check this field for errors'
+                'defaultMessage'      : 'Please check this field for errors',
+        			
+		'strict' : false
 
             },Validator.plugins,options),
 
@@ -87,7 +89,7 @@ var Validator = function(){
                     options.validators[valName].apply(input,tmp) : 
                     options.regex[valName] ?
                         callback(!input.value.length || options.regex[valName].test(input.value)) :
-                        Util.error('A validator or regex has not been set for  "' + valName + '"');
+                        option.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : 0;
 
                 return this;
             };
