@@ -71,7 +71,7 @@ Please note that jQuery is NOT required. It is used only for event handling and 
                     
                     // After first submission, validate on keyup/change
                     $('form input').unbind('.val').on('keyup.val change.val',function(){
-                        val.element(this);
+                        val.input(this);
                     });
                     
                 });
