@@ -96,7 +96,7 @@ var Validator = function(){
 
             options.onBeforeValidateElement(input);
             var defs = [], 
-                list = input.getAttribute(options.attr).split(options.ruleSeparator);
+                list = input.getAttribute(options.attr).replace(/^\s+|\s+$/g, '').split(options.ruleSeparator);
 
             Util.loop(list,function(i){
                 defs[i] = Promise();
