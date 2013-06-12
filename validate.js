@@ -89,7 +89,7 @@ var Validator = function(){
                     options.validators[valName].apply(input,tmp) : 
                     options.regex[valName] ?
                         callback(!input.value.length || options.regex[valName].test(input.value)) :
-                        option.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : 0;
+                        option.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : callback(true);
 
                 return this;
             };
