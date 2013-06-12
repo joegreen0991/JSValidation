@@ -36,7 +36,6 @@ var Validator = function(){
                     var deferred = defer(),
                         results = 0,
                         failed = false;
-
                     for (var i = 0, len = args.length; i < len; i++) {
                         args[i].then(function() {
                             args.length === ++results && deferred.resolve();
@@ -71,8 +70,8 @@ var Validator = function(){
                 'onFail' : function(form){},
 
                 'defaultMessage'      : 'Please check this field for errors',
-        			
-		'strict' : false
+				
+				'strict' : false
 
             },Validator.plugins,options),
 
@@ -84,12 +83,11 @@ var Validator = function(){
 
                 var tmp = args.slice(0); 
                 tmp.push(callback);
-
                 options.validators[valName] ?
                     options.validators[valName].apply(input,tmp) : 
                     options.regex[valName] ?
                         callback(!input.value.length || options.regex[valName].test(input.value)) :
-                        option.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : callback(true);
+                        options.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : callback(true);
 
                 return this;
             };
@@ -98,24 +96,25 @@ var Validator = function(){
 
             options.onBeforeValidateElement(input);
             var defs = [], 
-                list = input.getAttribute(options.attr).replace(/^\s+|\s+$/g, '').split(options.ruleSeparator);
+                list = input.getAttribute(options.attr);
+			if(list){
+				Util.loop(list.replace(/^\s+|\s+$/g, '').split(options.ruleSeparator),function(i){
+					defs[i] = Promise();
+					var parts = this.split(options.ruleArgumentSeparator),
+						args = parts[1] ? parts[1].split(options.argumentSeparator) : [];
 
-            Util.loop(list,function(i){
-                defs[i] = Promise();
-                var parts = this.split(options.ruleArgumentSeparator),
-                    args = parts[1] ? parts[1].split(options.argumentSeparator) : [];
+					validate(input, parts[0], args, function(result){
+						(result ? defs[i].resolve() : defs[i].reject(parts[0], args));
+					});   
+				});
+			
 
-                validate(input, parts[0], args, function(result){
-                    (result ? defs[i].resolve() : defs[i].reject(parts[0], args));
-                });   
-            });
-
-            Promise.when(defs).then(function(){
-                options.onInputSuccess(input);
-            },function(valName, args){
-                options.onInputFail(input, message(input.value, valName, args), valName, args);
-            });
-
+				Promise.when(defs).then(function(){
+					options.onInputSuccess(input);
+				},function(valName, args){
+					options.onInputFail(input, message(input.value, valName, args), valName, args);
+				});
+			}
             return defs;
         };
 
