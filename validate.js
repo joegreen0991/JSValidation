@@ -1,4 +1,6 @@
-    var Validator = function(options){
+var Validator = function(){
+	
+	var Validator = function(options){
     
         var Promise = function() {
                 var defer = function() {
