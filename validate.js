@@ -1,5 +1,3 @@
-var Validator = function(){
-        
     var Validator = function(options){
     
         var Promise = function() {
@@ -86,7 +84,7 @@ var Validator = function(){
                 options.validators[valName] ?
                     options.validators[valName].apply(input,tmp) : 
                     options.regex[valName] ?
-                        callback(!input.value.length || options.regex[valName].test(input.value)) :
+                        callback(options.regex[valName].test(input.value)) :
                         options.strict ? Util.error('A validator or regex has not been set for  "' + valName + '"') : callback(true);
 
                 return this;
@@ -126,13 +124,17 @@ var Validator = function(){
                 defs = defs.concat(this.input(inputs[i]));
             }
 
-            Promise.when(defs).then(function(){
+            var promise = Promise.when(defs).then(function(){
                 options.onSuccess(form);
             },function(){
                 options.onFail(form);
             });
+			
+			if(defs.length === 0){
+				promise.resolve();
+			}
 
-            return defs;
+            return promise;
         };
     },
     Util = {
@@ -185,34 +187,35 @@ var Validator = function(){
 
         'validators' : {
             'positive' : function(callback){
-                callback(Validator.plugins.regex.number.test(this.value) && this.value >= 0);
+                callback(Valempty(this.value) || (Validator.plugins.regex.number.test(this.value) && this.value >= 0));
             },
             'negative' : function(callback){
-                callback(Validator.plugins.regex.number.test(this.value) && this.value <= 0);
+                callback(Valempty(this.value) || (Validator.plugins.regex.number.test(this.value) && this.value <= 0));
             },
             'min' : function(min,callback){
-                callback(Validator.plugins.regex.number.test(this.value) && this.value >= parseFloat(min));
+                callback(Valempty(this.value) || (Validator.plugins.regex.number.test(this.value) && this.value >= parseFloat(min)));
             },
             'max' : function(max,callback){
-                callback(Validator.plugins.regex.number.test(this.value) && this.value <= parseFloat(max));
+                callback(Valempty(this.value) || (Validator.plugins.regex.number.test(this.value) && this.value <= parseFloat(max)));
             },
             'required' :function(callback){
-                callback(!Validator.plugins.regex.required.test(this.value));
+                callback(!Valempty(this.value));
             },
             'length' : function(size,callback){
-                callback(this.value.length == size);
+                callback(Valempty(this.value) || (this.value.length == size));
             },
             'minlength' : function(size,callback){
-                callback(this.value.length >= size);
+                callback(Valempty(this.value) || (this.value.length >= size));
             },
             'maxlength' : function(size,callback){
-                callback(this.value.length <= size);
+                callback(Valempty(this.value) || (this.value.length <= size));
             },
             'checked' : function(callback){
                 callback(this.checked);
             }
         }
     };
-    
+	// Helps with minification - this is used all over the place
+    var Valempty = function(val){return Validator.plugins.regex.required.test(val);};
     return Validator;
 }();
