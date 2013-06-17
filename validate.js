@@ -13,6 +13,7 @@ var Validator = function(){
                                 while (chain.length) {
                                     (chain.shift())[state === false ? 1 : 0].apply(this, args);
                                 }
+                                return this;
                             },
                             noop = function(){};
 
@@ -23,11 +24,11 @@ var Validator = function(){
                         };
                         this.resolve = function() {
                             state = true;
-                            fire(arguments);
+                            return fire(arguments);
                         };
                         this.reject = function() {
                             state = false;
-                            fire(arguments);
+                            return fire(arguments);
                         };
                     };
                 };
@@ -44,7 +45,7 @@ var Validator = function(){
                         });
                     }
 
-                    return deferred;
+                    return args.length === 0 ? deferred.resolve() : deferrred;
                 };
 
                 return defer;
@@ -60,18 +61,9 @@ var Validator = function(){
 
                 'argumentSeparator' : ',',
 
-                'onBeforeValidateElement' : function(input){},
-                'onBeforeValidateForm' : function(form){},
-                'onInputSuccess' : function(input){},
-                'onInputFail' : function(input,message,validatorName,args){},
-                'onSuccess' : function(form){
-                    form.submit();
-                },
-                'onFail' : function(form){},
-
                 'defaultMessage'      : 'Please check this field for errors',
 				
-				'strict' : false
+		'strict' : false // Throw an error if a validator is applied that doesn't exist
 
             },Validator.plugins,options),
 
@@ -94,49 +86,37 @@ var Validator = function(){
 
         this.input = function(input){
 
-            options.onBeforeValidateElement(input);
             var defs = [], 
                 list = input.getAttribute(options.attr);
-			if(list){
-				Util.loop(list.replace(/^\s+|\s+$/g, '').split(options.ruleSeparator),function(i){
-					defs[i] = Promise();
-					var parts = this.split(options.ruleArgumentSeparator),
-						args = parts[1] ? parts[1].split(options.argumentSeparator) : [];
+		if(list){
+			Util.loop(list.replace(/^\s+|\s+$/g, '').split(options.ruleSeparator),function(i){
+				defs[i] = Promise();
+				
+				var parts = this.split(options.ruleArgumentSeparator),
+				    args = parts[1] ? parts[1].split(options.argumentSeparator) : [];
 
-					validate(input, parts[0], args, function(result){
-						(result ? defs[i].resolve() : defs[i].reject(parts[0], args));
-					});   
-				});
-			
-
-				Promise.when(defs).then(function(){
-					options.onInputSuccess(input);
-				},function(valName, args){
-					options.onInputFail(input, message(input.value, valName, args), valName, args);
-				});
-			}
-            return defs;
+				validate(input, parts[0], args, function(result){
+					(result ? defs[i].resolve() : defs[i].reject(parts[0], args));
+				});   
+			});
+		}
+            return Promise.when(defs);
         };
 
-        this.form = function(form){
-
-            options.onBeforeValidateForm(form);
-
-            for (var i = 0,  defs = [], inputs = Util.getElements('input,select,checkbox,textarea',form); i < inputs.length; ++i) {
-                defs = defs.concat(this.input(inputs[i]));
-            }
-
-            var promise = Promise.when(defs).then(function(){
-                options.onSuccess(form);
-            },function(){
-                options.onFail(form);
-            });
+        this.form = function(form,inputSuccess,inputFail){
 			
-			if(defs.length === 0){
-				promise.resolve();
-			}
+		var defs = [],
+			self = this;
+	
+		Util.loop(Util.getElements('input,select,checkbox,textarea',form),function(i){
+			defs.push(self.input(this).then(function(valName, args){
+				inputSuccess && inputSuccess(this, message(input.value, valName, args), valName, args);
+			},function(valName, args){
+				inputFail && inputFail(this, message(this.value, valName, args), valName, args);
+			}));
+		});
 
-            return promise;
+            return Promise.when(defs);
         };
     },
     Util = {
