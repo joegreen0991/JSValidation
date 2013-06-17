@@ -53,28 +53,49 @@ Please note that jQuery is NOT required. It is used only for event handling and 
                         'five' : function(callback){
                             callback(parseInt(this.value) === 5);
                         }
-                    },
-                    onBeforeValidateElement : function(input){
-                        $(input).parent().find('.success-form,.error-form').remove();
-                    },
-                    onInputSuccess : function(input){
+                    }
+                });
+    			
+				// Reusable functions
+				var funcs = {
+					onInputSuccess : function(input,message,validatorName,args){
                         $(input).after('<span class="success-form">OK</span>');
                     },
                     onInputFail : function(input,message,validatorName,args){
                         $(input).after('<span class="error-form">'+message+'</span>');
                     }
-                });
+				};
                 
-                $('form').submit(function(e){
+				// Example 1 - on submit validation
+                $('form.example1').submit(function(e){
                     e.preventDefault();
-                    val.form(this);
+					
+					$(this).find('.success-form,.error-form').remove();
+					
+                    val.form(this,funcs.onInputSuccess,funcs.onInputFail);
+                    
+                });
+				
+				// Example 2 - on change validation (after first submit)
+				
+				$('form.example2').submit(function(e){
+                    e.preventDefault();
+					
+					$(this).find('.success-form,.error-form').remove();
+					
+                    val.form(this,funcs.onInputSuccess,funcs.onInputFail);
                     
                     // After first submission, validate on keyup/change
-                    $('form input').unbind('.val').on('keyup.val change.val',function(){
-                        val.input(this);
+                    $(this).find('input').unbind('.val').on('keyup.val change.val',function(){
+						
+						$(this).parent().find('.success-form,.error-form').remove();
+						
+                        val.input(this).then(funcs.onInputSuccess,funcs.onInputFail); 
+						
                     });
                     
                 });
+				
             });
         </script>
         <style>
@@ -105,7 +126,22 @@ Please note that jQuery is NOT required. It is used only for event handling and 
         </style>
     </head>
     <body>
-        <form>
+		<h2>Example 1 - on submit validation</h2>
+        <form class="example1">
+            
+            <div><label>Password</label> <input data-validate="required minlength:8 strongpassword"/></div>
+            <div><label>Username</label> <input data-validate="required alnumextended"/></div>
+            <div><label>Email</label> <input data-validate="required email unique"/></div>
+            <div><label>Price</label> <input data-validate="required number positive"/></div>
+            <div><label>Enter the number 5</label> <input data-validate="required five"/></div>
+            <div><label>Minimum Value</label> <input data-validate="required number negative min:-20"/></div>
+            <div><label>Telephone (optional)</label> <input data-validate="required telephone"/></div>
+            <div><label>Agree</label> <input type="checkbox" data-validate="required checked"></div>
+            <div><button>Submit</button></div>
+        </form>
+		
+		<h2>Example 2 - on change validation (after first submit)</h2>
+        <form class="example2">
             
             <div><label>Password</label> <input data-validate="required minlength:8 strongpassword"/></div>
             <div><label>Username</label> <input data-validate="required alnumextended"/></div>
