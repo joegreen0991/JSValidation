@@ -106,17 +106,18 @@ var Validator = function(){
 
         this.form = function(form,inputSuccess,inputFail){
 			
-		var defs = [],
-			self = this;
-	
-		Util.loop(Util.getElements('input,select,checkbox,textarea',form),function(i){
-			defs.push(self.input(this).then(function(valName, args){
-				inputSuccess && inputSuccess(this, message(input.value, valName, args), valName, args);
-			},function(valName, args){
-				inputFail && inputFail(this, message(this.value, valName, args), valName, args);
-			}));
-		});
-
+			var defs = [],
+				self = this;
+		
+			Util.loop(Util.getElements('input,select,checkbox,textarea',form),function(i){
+				var input = this;
+				defs.push(self.input(input).then(function(valName, args){
+					inputSuccess && inputSuccess(input, message(input.value, valName, args), valName, args);
+				},function(valName, args){
+					inputFail && inputFail(input, message(input.value, valName, args), valName, args);
+				}));
+			});
+			
             return Promise.when(defs);
         };
     },
