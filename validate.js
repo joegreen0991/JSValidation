@@ -13,7 +13,6 @@ var Validator = function(){
                                 while (chain.length) {
                                     (chain.shift())[state === false ? 1 : 0].apply(this, args);
                                 }
-                                return this;
                             },
                             noop = function(){};
 
@@ -24,11 +23,13 @@ var Validator = function(){
                         };
                         this.resolve = function() {
                             state = true;
-                            return fire(arguments);
+                            fire(arguments);
+                            return this;
                         };
                         this.reject = function() {
                             state = false;
-                            return fire(arguments);
+                            fire(arguments);
+                            return this;
                         };
                     };
                 };
