@@ -69,10 +69,16 @@ Please note that jQuery is NOT required. It is used only for event handling and 
 				// Example 1 - on submit validation
                 $('form.example1').submit(function(e){
                     e.preventDefault();
+                    
+                    var form = this;
 					
-					$(this).find('.success-form,.error-form').remove();
+					$(form).find('.success-form,.error-form').remove();
 					
-                    val.form(this,funcs.onInputSuccess,funcs.onInputFail);
+                    val.form(form,funcs.onInputSuccess,funcs.onInputFail).then(function(){
+                    	form.submit();
+                    },function(){
+	                console.log('There were errors with the form');
+                    });
                     
                 });
 				
@@ -83,7 +89,11 @@ Please note that jQuery is NOT required. It is used only for event handling and 
 					
 					$(this).find('.success-form,.error-form').remove();
 					
-                    val.form(this,funcs.onInputSuccess,funcs.onInputFail);
+                    val.form(this,funcs.onInputSuccess,funcs.onInputFail).then(function(){
+                    	form.submit();
+                    },function(){
+	                console.log('There were errors with the form');
+                    });
                     
                     // After first submission, validate on keyup/change
                     $(this).find('input').unbind('.val').on('keyup.val change.val',function(){
